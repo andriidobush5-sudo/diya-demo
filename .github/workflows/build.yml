@@ -3,15 +3,10 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '*.zip'
-      - '.github/workflows/build.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,43 +17,21 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle
+      - name: Extract project
+        run: |
+          unzip DiyaLearningApp_Kotlin_Project.zip -d .
+
+      - name: Build APK
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Extract project
-        run: |
-          mkdir source
-          unzip DiyaLearningApp_Kotlin_Project.zip -d source
+      - name: Compile
+        run: gradle -p DiyaLearningApp :app:assembleDebug
 
-      - name: Fix JVM compatibility
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("source/DiyaLearningApp/app/build.gradle.kts")
-          s = p.read_text()
-          s = s.replace(
-              '    buildFeatures { compose = true }',
-              '''    compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-              buildFeatures { compose = true }'''
-          )
-          p.write_text(s)
-          PY
-
-      - name: Build APK
-        run: |
-          gradle -p source/DiyaLearningApp :app:assembleDebug
-
-      - name: Save APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Diya-Demo-APK
-          path: source/DiyaLearningApp/app/build/outputs/apk/debug/app-debug.apk
+          path: DiyaLearningApp/app/build/outputs/apk/debug/app-debug.apk
           
