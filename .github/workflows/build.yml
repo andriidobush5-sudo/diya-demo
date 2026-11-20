@@ -30,6 +30,10 @@ jobs:
           mkdir -p source
           unzip -o DiyaLearningApp_Kotlin_Project.zip -d source
 
+      - name: Replace MainActivity
+        run: |
+          cp MainActivity.kt source/DiyaLearningApp/app/src/main/java/ua/example/diyalearning/MainActivity.kt
+
       - name: Fix Java and Kotlin versions
         run: |
           cat >> source/DiyaLearningApp/app/build.gradle.kts <<'EOF'
